@@ -109,21 +109,18 @@ The output is something like:
 
 =head1 DESCRIPTION
 
-String::Elide::Lines is based on L<String::Elide::Parts> but works on a per-line
-basis.
+This module can be used to elide lines from a POD string to reduce its number of
+lines (e.g. for summarizing a POD). It will try to elide text lines first before
+POD command lines. head3 will be elided before head2, head2 before head1, and so
+on.
 
 
 =head1 FUNCTIONS
 
-=head2 elide($str, $len[, \%opts]) => str
+=head2 elide($pod, $len[, \%opts]) => str
 
-Elide lines from a string if the string contains more than C<$len> lines.
-
-String can be marked with C<< <elspan prio=N truncate=T marker=M>...</elspan> >>
-so there can be multiple parts with different priorities and truncate direction.
-The default priority is 1. You can mark less important lines with higher
-priority to let it be elided first. The markup will be removed from the string
-before eliding.
+Elide lines from POD string C<$pod> if the string contains more than C<$len>
+lines.
 
 Known options:
 
@@ -137,10 +134,5 @@ Known options:
 
 
 =head1 SEE ALSO
-
-L<String::Elide::Parts> is the basis of this module but works on a per-character
-basis. See that module's SEE ALSO for list of other string eliding modules.
-
-L<Pod::Elide> uses this module.
 
 =cut
