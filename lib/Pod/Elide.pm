@@ -12,14 +12,23 @@ our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(elide);
 
 sub _markup {
-    my ($cmd, $rest) = @_;
+    my ($preamble, $cmd, $postamble, $opts) = @_;
 
-    my $prio = 10;
+    my $retain_level = $opts->{retain_level} // 9;
+
+    my $prio;
     if ($cmd =~ /\Ahead(\d+)\z/) {
-        $prio = $1;
+        $prio = $1 if $retain_level >= $1;
+    }
+    unless (defined $prio) {
+        $prio = $retain_level >= 9 ? 10 : 999;
     }
 
-    "<elspan prio=$prio>=$cmd$rest</elspan>";
+    if ($prio < 999) {
+        "$preamble<elspan prio=$prio>=$cmd$postamble</elspan>";
+    } else {
+        "$preamble$cmd$postamble";
+    }
 }
 
 sub elide {
@@ -29,9 +38,13 @@ sub elide {
 
     $opts //= {};
 
-    $str =~ s/^=(\w+)(.*\R(?:\R|\z))/_markup($1, $2)/egm;
+    $str =~ s/^(\A|\R)=(\w+)(.*\R(?:\R|\z))/_markup($1, $2, $3, $opts)/egm;
     #print $str;
-    String::Elide::Lines::elide($str, $len, {%$opts, default_prio=>999});
+    String::Elide::Lines::elide($str, $len, {
+        marker => ["\n", ($opts->{marker} // "..")."\n", "\n"],
+        truncate => $opts->{truncate} // 'bottom',
+        default_prio=>999,
+    });
 }
 
 1;
@@ -129,6 +142,8 @@ Known options:
 =item * marker => str (default: '..')
 
 =item * truncate => 'top'|'middle'|'bottom'|'ends' (default: 'bottom')
+
+=item * retain_level => int (1|2|3|9, default: 9)
 
 =back
 
